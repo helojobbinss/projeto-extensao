@@ -1,27 +1,49 @@
 <?php
+
 namespace App\Domains\Classroom\Models;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
-use App\Domains\Image\Image;
+use App\Domains\ClassroomEvent\Models\ClassroomEvent;
+use App\Domains\Project\Models\Project;
 
 class Classroom extends Model
 {
     protected $fillable = [
         'name',
         'description',
-        'weekday',
-        'start_at',
-        'end_at',
+        'weekdays',
+        'starts_on',
+        'ends_on',
+        'start_time',
+        'end_time',
+        'project_id',
     ];
 
     protected $casts = [
-        'start_at' => 'datetime',
-        'end_at' => 'datetime',
+
+        'weekdays' => 'array',
+
+        'starts_on' => 'date',
+
+        'ends_on' => 'date',
     ];
 
-    protected function serializeDate(DateTimeInterface $date): string
+    public function events()
     {
+        return $this->hasMany(ClassroomEvent::class);
+    }
+
+    protected function serializeDate(
+        DateTimeInterface $date
+    ): string {
         return $date->format('d/m/Y H:i');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(
+            Project::class
+        );
     }
 }

@@ -19,6 +19,7 @@
         <nav>
             <a href="{{ route('projects') }}"     class="{{ request()->routeIs('projects*')     ? 'active' : '' }}">🏠 PROJETOS</a>
             <a href="{{ route('events') }}"       class="{{ request()->routeIs('events*')       ? 'active' : '' }}">📅 EVENTOS</a>
+            <a href="{{ route('calendar') }}"       class="{{ request()->routeIs('calendar*')       ? 'active' : '' }}">📅 CALENDÁRIO</a>
             <a href="{{ route('classrooms') }}"       class="{{ request()->routeIs('classrooms*')       ? 'active' : '' }}">📅 Classes</a>
             <a href="{{ route('participants') }}"       class="{{ request()->routeIs('participants*') ? 'active' : '' }}">👥 PARTICIPANTES</a>
             <a href="{{ route('attendances') }}"   class="{{ request()->routeIs('attendances*')   ? 'active' : '' }}">📋 CHAMADA</a>

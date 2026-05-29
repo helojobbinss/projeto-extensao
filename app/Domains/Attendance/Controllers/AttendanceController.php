@@ -2,59 +2,74 @@
 
 namespace App\Domains\Attendance\Controllers;
 
-use App\Domains\Attendance\Models\Attendance;
-use App\Domains\Attendance\Services\AttendanceService;
-use App\Domains\Attendance\Requests\AttendanceRequest;
-use App\Domains\User\Models\User;
 use App\Http\Controllers\Controller;
+
+use App\Domains\Attendance\Models\Attendance;
+
+use App\Domains\AttendancePresence\Models\AttendancePresence;
 
 class AttendanceController extends Controller
 {
     public function index()
     {
-        $attendances = Attendance::with('participant')
+        $attendances = Attendance::with([
+            'classroomEvent.classroom',
+        ])
             ->latest()
-            ->paginate(9);
+            ->paginate(10);
 
-        return view('attendances.index', compact('attendances'));
+        return view(
+            'attendances.index',
+            compact('attendances')
+        );
     }
 
-    public function create()
-    {
-        $admins = User::where('role', 'admin')->get();
+    public function show(Attendance $attendance) {
+        $attendance->load([
+            'classroomEvent.classroom.project.participants',
+            'presences.participant',
+        ]);
 
-        return view('attendances.create', compact('admins'));
+        $participants =
+            $attendance
+                ->classroomEvent
+                ->classroom
+                ->project
+                ->participants;
+
+        foreach ($participants as $participant) {
+            AttendancePresence::firstOrCreate([
+                'attendance_id' => $attendance->id,
+                'participant_id' => $participant->id,
+            ]);
+        }
+        $attendance->load(
+            'presences.participant'
+        );
+
+        return view(
+            'attendances.show',
+            compact('attendance')
+        );
     }
-    public function store(AttendanceRequest $request, AttendanceService $service)
-    {
-        $service->create($request->validated());
+
+    public function update(Attendance $attendance) {
+        foreach (request('presences', []) as $presenceId => $data) {
+            $presence =AttendancePresence::find($presenceId);
+
+            if (!$presence) {
+                continue;
+            }
+
+            $presence->update([
+                'present' =>isset($data['present']),]);
+        }
 
         return redirect()
-            ->route('attendances')
-            ->with('success', 'Chamada registrada com sucesso!');
-    }   
-    public function edit(Attendance $attendance)
-    {
-        $admins = User::where('role', 'admin')->get();
-
-        return view('attendances.edit', compact('attendance', 'admins'));
-    }
-
-    public function update(AttendanceRequest $request, Attendance $attendance, AttendanceService $service)
-    {
-        $service->update($attendance, $request->validated());
-
-        return redirect()
-            ->route('attendances')
-            ->with('success', 'Chamada atualizada com sucesso!');
-    }
-
-    public function destroy(Attendance $attendance, AttendanceService $service)
-    {
-        $service->delete($attendance);
-
-        return redirect()
-            ->route('attendances')
-            ->with('success', 'Chamada deletada com sucesso!');
+            ->back()
+            ->with(
+                'success',
+                'Chamada salva com sucesso!'
+            );
     }
 }

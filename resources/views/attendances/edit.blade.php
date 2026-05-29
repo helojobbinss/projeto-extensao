@@ -3,78 +3,63 @@
 @section('content')
 <div class="page-header">
     <div>
-        <h2>Chamadas</h2>
-        <div class="subtitle">Lista de Chamadas</div>
+        <h2>Editar Chamada</h2>
+        <div class="subtitle">Atualize as presenças e faltas dos participantes</div>
     </div>
-    @if(auth()->user()->isAdmin())
-        <a href="{{ route('attendances.create') }}" class="btn btn-primary">NOVO PARTICIPANTE</a>
-    @endif
 </div>
 
 <div class="card-box">
+    <form method="POST" action="{{ route('attendances.update', $attendance->id) }}">
+        @csrf
+        @method('PUT')
 
-    <form method="GET" action="{{ route('attendances') }}" class="toolbar">
-        <input type="text" name="search" value="{{ request('search') }}"
-               class="input" placeholder="Buscar ...">
-        <select name="status" class="select" onchange="this.form.submit()">
-            <option value="">▽</option>
-            <option value="approved" @selected(request('status')=='approved')>Aprovado</option>
-            <option value="pending"  @selected(request('status')=='pending')>Pendente</option>
-            <option value="rejected" @selected(request('status')=='rejected')>Rejeitado</option>
-        </select>
+        <div style="margin-bottom: 20px;">
+            <label><strong>Data da Chamada:</strong></label>
+            <input type="date" name="date" class="form-control" value="{{ $attendance->date }}" required style="max-width: 200px;">
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: #f3f4f6; border-bottom: 2px solid #ddd;">
+                    <th style="padding: 12px 8px;">#</th>
+                    <th style="padding: 12px 8px;">Nome do participante</th>
+                    <th style="padding: 12px 8px; text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($participants as $index => $participant)
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 12px 8px;">{{ $index + 1 }}</td>
+                        <td style="padding: 12px 8px;">{{ $participant->name }}</td>
+                        <td style="padding: 12px 8px; text-align: center;">
+                            
+                            @php
+                                $currentStatus = $attendance->records->where('participant_id', $participant->id)->first()->status ?? '';
+                            @endphp
+
+                            <input type="hidden" name="attendances[{{ $participant->id }}][participant_id]" value="{{ $participant->id }}">
+
+                            <label style="margin-right: 15px; cursor: pointer;">
+                                <input type="radio" name="attendances[{{ $participant->id }}][status]" value="presente" required
+                                    {{ $currentStatus === 'presente' ? 'checked' : '' }}>
+                                Presente
+                            </label>
+
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="attendances[{{ $participant->id }}][status]" value="falta" required
+                                    {{ $currentStatus === 'falta' ? 'checked' : '' }}>
+                                Falta
+                            </label>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-success">Atualizar Chamada</button>
+            <a href="{{ route('attendances.index') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
     </form>
-
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Projetos</th>
-                <th>Data Nascimento</th>
-                <th>Idade</th>
-                <th>Telefone</th>
-                <th>E-mail</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @forelse($attendances as $p)
-            <tr>
-                <td class="cell-link">{{ $p->user->name }}</td>
-                <td class="cell-link">{{ $p->project->name }}</td>
-                <td>{{ optional($p->user->birthday)->format('d/m/Y') }}</td>
-                <td>{{ $p->user->age ?? '-' }}</td>
-                <td>{{ $p->user->phone }}</td>
-                <td class="cell-link">{{ $p->user->email }}</td>
-                <td>
-                    @if($p->status === 'approved')
-                        <span class="status-icon approved">✔</span>
-                    @elseif($p->status === 'pending')
-                        <span class="status-icon pending">⏳</span>
-                    @else
-                        <span class="status-icon rejected">✖</span>
-                    @endif
-                </td>
-                <td>
-                    <div class="row-actions">
-                        <a href="{{ route('attendances.edit', $p->id) }}" class="btn btn-outline btn-icon">✏</a>
-                        <form method="POST" action="{{ route('attendances.destroy', $p->id) }}"
-                              onsubmit="return confirm('Excluir?')">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-danger btn-icon">🗑</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-        @empty
-            <tr><td colspan="8" style="text-align:center; padding:24px; color:var(--muted)">Nenhum attendancee.</td></tr>
-        @endforelse
-        </tbody>
-    </table>
-
-    <div class="table-footer">
-        <span>Mostrando {{ $attendances->count() }} de {{ $attendances->total() ?? $attendances->count() }} registros</span>
-        <div class="pager">{{ $attendances->links() }}</div>
-    </div>
 </div>
 @endsection

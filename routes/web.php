@@ -9,6 +9,8 @@ use App\Domains\Participant\Controllers\ParticipantController;
 use App\Domains\Volunteer\Controllers\VolunteerController;
 use App\Domains\Event\Controllers\EventController;
 use App\Domains\Attendance\Controllers\AttendanceController;
+use App\Domains\AttendancePresence\Controllers\AttendancePresenceController;
+use App\Domains\Calendar\Controllers\CalendarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +34,8 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('projects');
     });
 
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
@@ -47,21 +51,18 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/classrooms/{classroom}', [ClassroomController::class, 'destroy'])->name('classrooms.destroy');
 
 
-        Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances');
+    Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances');
     Route::get('/attendances/create', [AttendanceController::class, 'create'])->name('attendances.create');
     Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
     Route::get('/attendances/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendances.edit');
     Route::put('/attendances/{attendance}', [AttendanceController::class, 'update'])->name('attendances.update');
     Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
+    Route::get('/attendances/{attendance}/call', [AttendanceController::class, 'call'])->name('attendances.call');
 
-    /*
-    |--------------------------------------------------------------------------
-    | PARTICIPANTES
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/participants', function () {
-        return view('participants.index');
-    })->name('participants');
+    Route::get('/attendances/{attendance}/presences',[AttendancePresenceController::class, 'edit'])->name('attendance-presences.edit');
+
+    Route::post('/attendances/{attendance}/presences',[AttendancePresenceController::class, 'update'])->name('attendance-presences.update');
+    Route::get('/participants', function () {return view('participants.index');})->name('participants');
 
     /*
     |--------------------------------------------------------------------------
@@ -114,14 +115,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/participants/create', [ParticipantController::class, 'create'])->name('participants.create');
     Route::post('/participants', [ParticipantController::class, 'store'])->name('participants.store');
-Route::get('/participants/{participant}/edit', [ParticipantController::class, 'edit'])
-    ->name('participants.edit');
+    Route::get('/participants/{participant}/edit', [ParticipantController::class, 'edit'])
+        ->name('participants.edit');
 
-Route::put('/participants/{participant}', [ParticipantController::class, 'update'])
-    ->name('participants.update');
+    Route::put('/participants/{participant}', [ParticipantController::class, 'update'])
+        ->name('participants.update');
 
-Route::delete('/participants/{participant}', [ParticipantController::class, 'destroy'])
-    ->name('participants.destroy');
+    Route::delete('/participants/{participant}', [ParticipantController::class, 'destroy'])
+        ->name('participants.destroy');
 
     /*
     |--------------------------------------------------------------------------

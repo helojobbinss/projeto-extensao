@@ -2,111 +2,173 @@
 
 @section('content')
 
-    <div class="container">
+<div class="page-header">
+    <div>
+        <h2>Chamadas</h2>
 
-        <div class="header">
-            <h3>Chamada</h3>
-
-        </div>
-
-        <form method="GET" action="{{ route('attendances') }}" class="mb-3">
-
-            <div class="search-box">
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control search-input"
-                    placeholder="Buscar...">
-
-                <button type="submit" class="search-btn">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-            </div>
-
-        </form>
-
-
-        {{-- TABELA --}}
-        <div class="card shadow-sm">
-
-            <div class="card-body p-0">
-
-                <table class="table table-hover mb-0">
-
-                    <thead class="table-light">
-                        <tr>
-                            <th>Nome</th>
-                            <th>Projetos</th>
-                            <th>Data Nascimento</th>
-                            <th>Idade</th>
-                            <th>Telefone</th>
-                            <th>E-mail</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @forelse($attendances as $p)
-
-                            <tr>
-                                <td>{{ $p->user->name }}</td>
-                                <td>{{ $p->project->name }}</td>
-                                <td>{{ optional($p->user->birthday)->format('d/m/Y') }}</td>
-                                <td>{{ $p->user->age ?? '-' }}</td>
-                                <td>{{ $p->user->phone }}</td>
-                                <td>{{ $p->user->email }}</td>
-
-                                <td>
-                                    @if($p->status === 'approved')
-                                        <span class="status approved">✔</span>
-                                    @elseif($p->status === 'pending')
-                                        <span class="status pending">⏳</span>
-                                    @else
-                                        <span class="status rejected">✖</span>
-                                    @endif
-                                </td>
-
-                                <td>
-                                    <div class="actions">
-                                        <a href="{{ route('attendances.edit', $p->id) }}" class="btn btn-primary">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </a>
-
-                                        <form action="{{ route('attendances.destroy', $p->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-
-                        @empty
-
-                            <tr>
-                                <td colspan="8" class="text-center py-3">
-                                    Nenhum chamada encontrado
-                                </td>
-                            </tr>
-
-                        @endforelse
-
-                    </tbody>
-
-                </table>
-
-            </div>
-        </div>
-
-        {{-- FOOTER --}}
-        <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
-            <span>Mostrando {{ $attendances->count() }} chamadas</span>
-
-            <div>
-                {{ $attendances->links() }}
-            </div>
+        <div class="subtitle">
+            Chamadas das classes agendadas para hoje
         </div>
     </div>
+</div>
+
+<div class="card-box">
+
+    <div style="margin-bottom: 20px;">
+        <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar projeto, evento ou classe..."
+            style="width: 100%; max-width: 400px;"
+        >
+    </div>
+
+    <table
+        style="
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        "
+    >
+
+        <thead>
+
+            <tr
+                style="
+                    background-color: #f3f4f6;
+                    border-bottom: 2px solid #ddd;
+                "
+            >
+
+                <th style="padding: 12px 8px;">#</th>
+
+                <th style="padding: 12px 8px;">
+                    Horário
+                </th>
+
+                <th style="padding: 12px 8px;">
+                    Projeto
+                </th>
+
+                <th style="padding: 12px 8px;">
+                    Evento
+                </th>
+
+                <th style="padding: 12px 8px;">
+                    Classe
+                </th>
+
+                <th style="padding: 12px 8px;">
+                    Responsável
+                </th>
+
+                <th
+                    style="
+                        padding: 12px 8px;
+                        text-align: center;
+                    "
+                >
+                    Ações
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @forelse($attendances as $index => $attendance)
+
+                <tr
+                    style="
+                        border-bottom: 1px solid #eee;
+                    "
+                >
+
+                    <td style="padding: 12px 8px;">
+                        {{ $index + 1 }}
+                    </td>
+
+                    <td style="padding: 12px 8px;">
+                        {{ \Carbon\Carbon::parse($attendance->date)->format('H:i') }}
+                    </td>
+
+                    <td style="padding: 12px 8px;">
+                        {{
+                            $attendance->project
+                                ->name
+                                ?? 'Sem projeto'
+                        }}
+                    </td>
+
+                    <td style="padding: 12px 8px;">
+                        {{
+                            $attendance->class
+                                ->event
+                                ->name
+                                ?? 'Sem evento'
+                        }}
+                    </td>
+
+                    <td style="padding: 12px 8px;">
+                        {{
+                            $attendance->class
+                                ->name
+                                ?? 'Sem classe'
+                        }}
+                    </td>
+
+                    <td style="padding: 12px 8px;">
+                        {{
+                            $attendance->project->coordinator
+                                ->name
+                            ?? 'Não informado'
+                        }}
+                    </td>
+
+                    <td
+                        style="
+                            padding: 12px 8px;
+                            text-align: center;
+                        "
+                    >
+
+                        <a
+                                href="{{route('attendance-presences.edit',$attendance->id)}}"
+                            class="btn btn-sm btn-primary"
+                        >
+                            Abrir
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            @empty
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        style="
+                            padding: 20px;
+                            text-align: center;
+                            color: #888;
+                        "
+                    >
+
+                        Nenhuma chamada encontrada.
+
+                    </td>
+
+                </tr>
+
+            @endforelse
+
+        </tbody>
+
+    </table>
+
+</div>
 
 @endsection

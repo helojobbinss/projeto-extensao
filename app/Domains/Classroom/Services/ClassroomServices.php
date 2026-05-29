@@ -3,45 +3,86 @@
 namespace App\Domains\Classroom\Services;
 
 use App\Domains\Classroom\Models\Classroom;
-use Carbon\Carbon;
+
+use App\Domains\ClassroomEvent\Services\ClassroomEventGenerator;
+
 use Illuminate\Support\Facades\DB;
 
 class ClassroomServices
 {
     public function create(array $data): Classroom
     {
-        $data['start_at'] = $this->parseDate($data['start_at']);
-        $data['end_at'] = $this->parseDate($data['end_at']);
+        return DB::transaction(function () use ($data) {
+            $classroom = Classroom::create([
 
-        return DB::transaction(fn () => Classroom::create($data));
-    }
+                'project_id' => $data['project_id'],
 
-    public function update(Classroom $classroom, array $data): Classroom
-    {
-        $data['start_at'] = $this->parseDate($data['start_at']);
-        $data['end_at'] = $this->parseDate($data['end_at']);
+                'name' => $data['name'],
 
-        return DB::transaction(function () use ($classroom, $data) {
-            $classroom->fill($data)->save();
+                'description' => $data['description'] ?? null,
+
+                'weekdays' => $data['weekdays'],
+
+                'starts_on' => $data['starts_on'],
+
+                'ends_on' => $data['ends_on'],
+
+                'start_time' => $data['start_time'],
+
+                'end_time' => $data['end_time'],
+            ]);
+            app(ClassroomEventGenerator::class)
+                ->generate($classroom);
 
             return $classroom->fresh();
         });
     }
 
-    public function delete(Classroom $classroom): bool
+    public function update(Classroom $classroom,array $data): Classroom {
+
+        return DB::transaction(function () use (
+            $classroom,
+            $data
+        ) {
+
+            $classroom->fill([
+
+                'project_id' => $data['project_id'],
+
+                'name' => $data['name'],
+
+                'description' => $data['description'] ?? null,
+
+                'weekdays' => $data['weekdays'],
+
+                'starts_on' => $data['starts_on'],
+
+                'ends_on' => $data['ends_on'],
+
+                'start_time' => $data['start_time'],
+
+                'end_time' => $data['end_time'],
+            ]);
+
+            $classroom->save();
+
+            $classroom->events()->delete();
+
+            app(ClassroomEventGenerator::class)
+                ->generate($classroom);
+
+            return $classroom->fresh();
+        });
+    }
+
+    public function delete(Classroom $classroom): bool 
     {
         return DB::transaction(function () use ($classroom) {
+
+            $classroom->events()->delete();
             $classroom->delete();
 
             return true;
         });
-    }
-
-    private function parseDate(string $date): string
-    {
-        return Carbon::createFromFormat(
-            'Y-m-d\TH:i',
-            $date
-        )->format('Y-m-d H:i:s');
     }
 }

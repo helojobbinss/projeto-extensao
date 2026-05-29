@@ -3,74 +3,59 @@
 @section('content')
 <div class="page-header">
     <div>
-        <h2>Chamadas</h2>
-        <div class="subtitle">Preencha as informações necessárias para cadastrar chamada.</div>
+        <h2>Chamada</h2>
+        <div class="subtitle">Registro de Presença de participantes</div>
     </div>
 </div>
 
 <div class="card-box">
-<form method="POST" action="{{ route('attendances.store') }}">
-    @csrf
+    <form method="POST" action="{{ route('attendances.store') }}">
+        @csrf
 
-    <div class="form-grid">
-        {{-- COLUNA ESQUERDA --}}
-        <div>
-            <div class="form-group">
-                <label>Nome <span class="required">*</span></label>
-                <input type="text" name="name" class="form-control" placeholder="Nome do Chamada" required>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Data de Nascimento <span class="required">*</span></label>
-                    <input type="date" name="birthday" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Idade</label>
-                    <input type="number" name="age" class="form-control" placeholder="Idade">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Telefone <span class="required">*</span></label>
-                <input type="text" name="phone" class="form-control" placeholder="(99) 9 9999-9999" required>
-            </div>
-
-            <div class="form-group">
-                <label>E-mail <span class="required">*</span></label>
-                <input type="email" name="email" class="form-control" placeholder="e-mail.cadastro@gmail.com" required>
-            </div>
+        {{-- Campos básicos da chamada --}}
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px;">Descrição:</label>
+            <input type="text" name="description" class="form-control" placeholder="Ex: Aula de Reforço" style="width: 100%; padding: 8px;">
         </div>
 
-        <div class="divider"></div>
-
-        {{-- COLUNA DIREITA --}}
-        <div>
-            <div class="form-group">
-                <label>Projetos</label>
-                <select name="project_id" class="form-control">
-                    <option value="">Selecione</option>
-                    @foreach($projects as $project)
-                        <option value="{{ $project->id }}">{{ $project->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Status</label>
-                <select name="status" class="form-control">
-                    <option value="approved">Ativo</option>
-                    <option value="pending">Pendente</option>
-                    <option value="rejected">Rejeitado</option>
-                </select>
-            </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px;">Data:</label>
+            <input type="date" name="date" class="form-control" value="{{ date('Y-m-d') }}" style="width: 100%; padding: 8px;">
         </div>
-    </div>
 
-    <div class="form-actions">
-        <a href="{{ route('attendances') }}" class="btn btn-ghost">CANCELAR</a>
-        <button type="submit" class="btn btn-primary">SALVAR</button>
-    </div>
-</form>
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background-color: #f3f4f6; border-bottom: 2px solid #ddd;">
+                    <th style="padding: 12px 8px;">#</th>
+                    <th style="padding: 12px 8px;">Nome do participante</th>
+                    <th style="padding: 12px 8px; text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($participants as $index => $participant)
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 8px;">{{ $index + 1 }}</td>
+                    <td style="padding: 12px 8px;">{{ $participant->name }}</td>
+                    <td style="padding: 12px 8px; text-align: center;">
+                        <label style="margin-right: 15px; cursor: pointer;">
+                            <input type="radio" name="attendances[{{ $participant->id }}][status]" value="presente" required>
+                            Presente
+                        </label>
+                        
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="attendances[{{ $participant->id }}][status]" value="falta" required>
+                            Falta
+                        </label>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <div class="form-actions" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+            <a href="{{ route('attendances') }}" class="btn btn-ghost">CANCELAR</a>
+            <button type="submit" class="btn btn-primary">SALVAR</button>
+        </div>
+    </form>
 </div>
 @endsection

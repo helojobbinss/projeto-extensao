@@ -2,40 +2,40 @@
 
 namespace App\Domains\Classroom\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Domains\Project\Models\Project;
+
 use App\Domains\Classroom\Models\Classroom;
 use App\Domains\Classroom\Requests\ClassroomRequest;
 use App\Domains\Classroom\Services\ClassroomServices;
-use App\Http\Controllers\Controller;
 
 class ClassroomController extends Controller
 {
     public function index()
     {
-        $classrooms = Classroom::latest()->paginate(9);
+        $classrooms = Classroom::with('project')
+            ->latest()
+            ->paginate(9);
 
-        $classrooms->setCollection(
-            $classrooms->getCollection()->transform(function (Classroom $classroom) {
-                return (object) [
-                    'id' => $classroom->id,
-                    'name' => $classroom->name,
-                    'description' => $classroom->description,
-                    'weekday' => $classroom->weekday,
-                    'start_at' => optional($classroom->start_at)->format('d/m/Y H:i') ?? '-',
-                    'end_at' => optional($classroom->end_at)->format('d/m/Y H:i') ?? '-',
-                ];
-            })
+        return view(
+            'classrooms.index',
+            compact('classrooms')
         );
-
-        return view('classrooms.index', compact('classrooms'));
     }
 
     public function create()
     {
-        return view('classrooms.create');
+        $projects = Project::orderBy('name')
+            ->get();
+
+        return view(
+            'classrooms.create',
+            compact('projects')
+        );
     }
 
-    public function store(ClassroomRequest $request, ClassroomServices $service)
-    {
+    public function store(ClassroomRequest $request, ClassroomServices $service) {
+
         $service->create($request->validated());
 
         return redirect()
@@ -43,17 +43,15 @@ class ClassroomController extends Controller
             ->with('success', 'Sala de aula criada com sucesso!');
     }
 
-    public function edit(Classroom $classroom)
-    {
-        return view('classrooms.edit', compact('classroom'));
+    public function edit(Classroom $classroom) {
+        $projects = Project::orderBy('name')->get();
+
+        return view('classrooms.edit',compact('classroom','projects'));
     }
 
-    public function update(
-        ClassroomRequest $request,
-        Classroom $classroom,
-        ClassroomServices $service
-    ) {
-        $service->update($classroom, $request->validated());
+    public function update(ClassroomRequest $request,Classroom $classroom,ClassroomServices $service) {
+
+        $service->update( $classroom,$request->validated());
 
         return redirect()
             ->route('classrooms')
