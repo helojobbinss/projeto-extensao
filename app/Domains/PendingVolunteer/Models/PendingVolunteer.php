@@ -1,33 +1,27 @@
 <?php
 
-namespace App\Domains\Volunteer\Models;
+namespace App\Domains\PendingVolunteer\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Domains\User\Models\User;
 use App\Domains\Project\Models\Project;
 
-class Volunteer extends Model
+class PendingVolunteer extends Model
 {
-    protected $table = 'volunteers';
+    protected $table = 'pending_volunteers';
 
     protected $fillable = [
-        'user_id',
+        'name',
+        'email',
+        'phone',
+        'birthdate',
+        'description',
         'project_id',
         'status',
         'applied_at',
         'approved_at',
     ];
-
-    /**
-     * USER
-     */
-    public function user()
-    {
-        return $this->belongsTo(
-            User::class,
-            'user_id'
-        );
-    }
+  
 
     /**
      * PROJECT

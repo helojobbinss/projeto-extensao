@@ -1,37 +1,49 @@
 <?php
+
 namespace App\Domains\Project\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Domains\Image\Image;
+use App\Domains\User\Models\User;
+use App\Domains\Volunteer\Models\Volunteer;
+use App\Domains\Participant\Models\Participant;
 
 class Project extends Model
 {
+    protected $table = 'projects';
+
     protected $fillable = [
         'name',
-        'coordinator_id',
         'description',
-        'location',
-        'target_audience',
-        'start_date',
-        'end_date',
-        'vacancies',
-        'status',
+        'coordinator_id',
     ];
 
+    /**
+     * COORDENADOR
+     */
     public function coordinator()
     {
-        return $this->belongsTo(\App\Domains\User\Models\User::class, 'coordinator_id');
+        return $this->belongsTo(
+            User::class,
+            'coordinator_id'
+        );
     }
-    public function images()
+
+    /**
+     * VOLUNTÁRIOS
+     */
+    public function volunteers()
     {
-        return $this->morphMany(Image::class, 'imageable');
+        return $this->hasMany(
+            Volunteer::class,
+            'project_id'
+        );
     }
 
     public function participants()
     {
-        return $this->belongsToMany(
-            \App\Domains\User\Models\User::class,
-            'participants'
+        return $this->hasMany(
+            Participant::class,
+            'project_id'
         );
     }
 }

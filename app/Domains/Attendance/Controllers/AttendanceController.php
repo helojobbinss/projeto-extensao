@@ -3,9 +3,7 @@
 namespace App\Domains\Attendance\Controllers;
 
 use App\Http\Controllers\Controller;
-
 use App\Domains\Attendance\Models\Attendance;
-
 use App\Domains\AttendancePresence\Models\AttendancePresence;
 
 class AttendanceController extends Controller
@@ -13,10 +11,11 @@ class AttendanceController extends Controller
     public function index()
     {
         $attendances = Attendance::with([
+            'project',
             'classroomEvent.classroom',
         ])
-            ->latest()
-            ->paginate(10);
+        ->latest()
+        ->paginate(10);
 
         return view(
             'attendances.index',
@@ -24,28 +23,28 @@ class AttendanceController extends Controller
         );
     }
 
-    public function show(Attendance $attendance) {
+    public function show(Attendance $attendance)
+    {
         $attendance->load([
-            'classroomEvent.classroom.project.participants',
-            'presences.participant',
+            'project.participants.user',
+            'presences.participant.user',
         ]);
 
-        $participants =
-            $attendance
-                ->classroomEvent
-                ->classroom
-                ->project
-                ->participants;
+        $participants = $attendance->project?->participants ?? collect();
 
         foreach ($participants as $participant) {
+
             AttendancePresence::firstOrCreate([
-                'attendance_id' => $attendance->id,
+                'attendance_id'  => $attendance->id,
                 'participant_id' => $participant->id,
             ]);
+
         }
-        $attendance->load(
-            'presences.participant'
-        );
+
+        $attendance->load([
+            'project.participants.user',
+            'presences.participant.user',
+        ]);
 
         return view(
             'attendances.show',
@@ -53,16 +52,28 @@ class AttendanceController extends Controller
         );
     }
 
-    public function update(Attendance $attendance) {
-        foreach (request('presences', []) as $presenceId => $data) {
-            $presence =AttendancePresence::find($presenceId);
+    public function update(Attendance $attendance)
+    {
+        foreach (request('presences', []) as $participantId => $data) {
+
+            $presence = AttendancePresence::where(
+                'attendance_id',
+                $attendance->id
+            )
+            ->where(
+                'participant_id',
+                $participantId
+            )
+            ->first();
 
             if (!$presence) {
                 continue;
             }
 
             $presence->update([
-                'present' =>isset($data['present']),]);
+                'present' => isset($data['present']),
+                'observation' => $data['observation'] ?? null,
+            ]);
         }
 
         return redirect()

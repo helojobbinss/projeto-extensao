@@ -3,11 +3,8 @@
 namespace App\Domains\AttendancePresence\Controllers;
 
 use Illuminate\Http\Request;
-
 use App\Http\Controllers\Controller;
-
 use App\Domains\Attendance\Models\Attendance;
-
 use App\Domains\AttendancePresence\Models\AttendancePresence;
 
 class AttendancePresenceController extends Controller
@@ -15,7 +12,7 @@ class AttendancePresenceController extends Controller
     public function edit($attendanceId)
     {
         $attendance = Attendance::with([
-            'project.participants',
+            'project.participants.user',
             'presences'
         ])->findOrFail($attendanceId);
 
@@ -36,7 +33,10 @@ class AttendancePresenceController extends Controller
             []
         );
 
-        foreach ($attendance->project->participants as $participant) {
+        foreach (
+            $attendance->project?->participants ?? collect()
+            as $participant
+        ) {
 
             $data = $presences[$participant->id] ?? [];
 
@@ -53,10 +53,13 @@ class AttendancePresenceController extends Controller
         }
 
         return redirect()
-            ->back()
+            ->route(
+                'attendances.report.edit',
+                $attendance->id
+            )
             ->with(
                 'success',
-                'Presenças salvas com sucesso!'
+                'Presenças salvas com sucesso.'
             );
     }
 }

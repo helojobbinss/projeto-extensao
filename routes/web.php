@@ -11,6 +11,10 @@ use App\Domains\Event\Controllers\EventController;
 use App\Domains\Attendance\Controllers\AttendanceController;
 use App\Domains\AttendancePresence\Controllers\AttendancePresenceController;
 use App\Domains\Calendar\Controllers\CalendarController;
+use App\Domains\Site\SiteController;
+use App\Domains\Settings\Controllers\SettingController;
+use App\Domains\PendingVolunteer\Controllers\PendingVolunteerController;
+use App\Domains\AttendanceReport\Controllers\AttendanceReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,15 +26,15 @@ Route::view('/login', 'auth.login')->name('login');
 Route::view('/register', 'auth.register')->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-/*
-|--------------------------------------------------------------------------
-| 🔐 ROTAS PROTEGIDAS (WEB)
-|--------------------------------------------------------------------------
-*/
+Route::get('/', [SiteController::class, 'home'])->name('site.home');
+Route::get('/sobre', [SiteController::class, 'about'])->name('site.about');
+Route::get('/projetcs', [SiteController::class, 'projects'])->name('site.projects');
+Route::get('/contato', [SiteController::class, 'contact'])->name('site.contact');
+Route::post('/volunteer/apply',[PendingVolunteerController::class, 'store'])->name('volunteer.apply');
 
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/', function () {
+    Route::get('/dashboard', function () {
         return redirect()->route('projects');
     });
 
@@ -59,23 +63,35 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
     Route::get('/attendances/{attendance}/call', [AttendanceController::class, 'call'])->name('attendances.call');
 
-    Route::get('/attendances/{attendance}/presences',[AttendancePresenceController::class, 'edit'])->name('attendance-presences.edit');
+    Route::get('/attendances/{attendance}/presences', [AttendancePresenceController::class, 'edit'])->name('attendance-presences.edit');
 
-    Route::post('/attendances/{attendance}/presences',[AttendancePresenceController::class, 'update'])->name('attendance-presences.update');
-    Route::get('/participants', function () {return view('participants.index');})->name('participants');
+    Route::post('/attendances/{attendance}/presences', [AttendancePresenceController::class, 'update'])->name('attendance-presences.update');
+    Route::get('/participants', function () {
+        return view('participants.index'); })->name('participants');
 
-    /*
-    |--------------------------------------------------------------------------
-    | VOLUNTÁRIOS
-    |--------------------------------------------------------------------------
-    */
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingController::class, 'edit'])->name('edit');
+        Route::put('/', [SettingController::class, 'update'])->name('update');
+    });
+
+
     Route::get('/volunteers', [VolunteerController::class, 'index'])->name('volunteers');
     Route::get('/volunteers/create', [VolunteerController::class, 'create'])->name('volunteers.create');
     Route::post('/volunteers', [VolunteerController::class, 'store'])->name('volunteers.store');
     Route::get('/volunteers/{volunteer}/edit', [VolunteerController::class, 'edit'])->name('volunteers.edit');
     Route::put('/volunteers/{volunteer}', [VolunteerController::class, 'update'])->name('volunteers.update');
     Route::delete('/volunteers/{volunteer}', [VolunteerController::class, 'destroy'])->name('volunteers.destroy');
+    Route::get('/volunteers/{id}/delete', [VolunteerController::class, 'delete'])
+        ->name('volunteers.delete');
 
+        
+    Route::get('/pending-volunteers',[PendingVolunteerController::class, 'index'])->name('pending-volunteers.index');
+    Route::post('/pending-volunteers/{id}/approve',[PendingVolunteerController::class, 'approve'])->name('pending-volunteers.approve');
+    Route::post('/pending-volunteers/{id}/reject',[PendingVolunteerController::class, 'reject'])->name('pending-volunteers.reject');
+
+    Route::get('/attendances/{attendance}/report',  [AttendanceReportController::class, 'edit'])->name('attendances.report.edit');
+    Route::put('/attendances/{attendance}/report',  [AttendanceReportController::class, 'update'])->name('attendances.report.update');
+    Route::delete('/attendances/{attendance}/report/images/{image}', [AttendanceReportController::class, 'destroyImage'])->name('attendances.report.image.destroy');
     /*
     |--------------------------------------------------------------------------
     | EVENTOS

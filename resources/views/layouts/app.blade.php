@@ -24,6 +24,7 @@
             <a href="{{ route('participants') }}"       class="{{ request()->routeIs('participants*') ? 'active' : '' }}">👥 PARTICIPANTES</a>
             <a href="{{ route('attendances') }}"   class="{{ request()->routeIs('attendances*')   ? 'active' : '' }}">📋 CHAMADA</a>
             <a href="{{ route('volunteers') }}"   class="{{ request()->routeIs('volunteers*')   ? 'active' : '' }}">🤝 VOLUNTÁRIOS</a>
+            <a href="{{ route('settings.edit') }}"   class="{{ request()->routeIs('settings*')   ? 'active' : '' }}">⚙️ CONFIGURAÇÕES</a>
         </nav>
 
         <a href="{{ route('logout') }}" class="sidebar-logout"
@@ -36,7 +37,7 @@
     <div class="app-main">
         <header class="app-header">
             <div class="brand">
-                <img src="{{ asset('img/adra-logo.png') }}" alt="ADRA">
+                <img src="{{ asset('images/logo-verde.png') }}" alt="ADRA">
                 Vida e Saúde - ADRA
             </div>
             <div class="user-info">👤 ADMINISTRADOR</div>

@@ -25,12 +25,14 @@ class ClassroomEvent extends Model
         'ends_at' => 'datetime',
     ];
 
-    public function attendance()
-    {
-        return $this->hasOne(
-            Attendance::class
-        );
-    }
+public function attendance()
+{
+    return $this->hasOne(
+        Attendance::class,
+        'classroom_event_id',
+        'id'
+    );
+}
     public function classroom()
     {
         return $this->belongsTo(Classroom::class);

@@ -2,50 +2,82 @@
 
 namespace App\Domains\Volunteer\Services;
 
-use App\Domains\Project\Models\Project;
-use App\Domains\User\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Domains\Volunteer\Models\Volunteer;
 
 class VolunteerService
 {
+    /**
+     * CRIAR VOLUNTÁRIO
+     */
     public function attach(int $projectId, int $userId): array
     {
-        $project = Project::findOrFail($projectId);
-        User::findOrFail($userId); // garante que o user existe
+        $exists = Volunteer::where('project_id', $projectId)
+            ->where('user_id', $userId)
+            ->exists();
 
-        if ($project->volunteers()->where('user_id', $userId)->exists()) {
+        if ($exists) {
+
             return [
                 'success' => false,
                 'message' => 'Usuário já é voluntário deste projeto.',
             ];
+
         }
 
-        return DB::transaction(function () use ($project, $userId) {
-            $project->volunteers()->attach($userId);
+        Volunteer::create([
 
-            return [
-                'success' => true,
-                'message' => 'Voluntário adicionado com sucesso.',
-            ];
-        });
+            'project_id' => $projectId,
+            'user_id' => $userId,
+            'status' => 'pending',
+            'applied_at' => now(),
+
+        ]);
+
+        return [
+
+            'success' => true,
+            'message' => 'Voluntário adicionado com sucesso.',
+
+        ];
     }
 
+    /**
+     * REMOVER VOLUNTÁRIO
+     */
     public function detach(int $projectId, int $userId): array
     {
-        $project = Project::findOrFail($projectId);
+        $volunteer = Volunteer::where('project_id', $projectId)
+            ->where('user_id', $userId)
+            ->first();
 
-        $removed = $project->volunteers()->detach($userId);
+        if (!$volunteer) {
 
-        if ($removed === 0) {
             return [
                 'success' => false,
                 'message' => 'Usuário não é voluntário deste projeto.',
             ];
+
         }
 
+        $volunteer->delete();
+
         return [
+
             'success' => true,
             'message' => 'Voluntário removido com sucesso.',
+
         ];
+    }
+
+    public function approve($id)
+    {
+        $volunteer = Volunteer::findOrFail($id);
+
+        $volunteer->update([
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Voluntário aprovado!');
     }
 }

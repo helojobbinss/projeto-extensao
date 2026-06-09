@@ -49,12 +49,7 @@
             @endif
 
             <form
-                action="{{
-                    route(
-                        'attendance-presences.update',
-                        $attendance->id
-                    )
-                }}"
+                action="{{ route('attendance-presences.update', $attendance->id) }}"
                 method="POST"
             >
 
@@ -96,18 +91,18 @@
                         <tbody>
 
                             @forelse(
-                                $attendance->project->participants
+                                $attendance->project?->participants ?? collect()
                                 as $index => $participant
                             )
 
                                 @php
 
-                                    $presence = collect(
-                                        $attendance->presences
-                                    )->firstWhere(
-                                        'participant_id',
-                                        $participant->id
-                                    );
+                                    $presence = $attendance
+                                        ->presences
+                                        ->firstWhere(
+                                            'participant_id',
+                                            $participant->id
+                                        );
 
                                 @endphp
 
@@ -122,7 +117,12 @@
                                     <td>
 
                                         <strong>
-                                            {{ $participant->name }}
+
+                                            {{
+                                                $participant->user?->name
+                                                ?? 'Sem nome'
+                                            }}
+
                                         </strong>
 
                                     </td>
@@ -135,8 +135,8 @@
                                             value="1"
 
                                             {{
-                                                $presence
-                                                && $presence->present
+                                                $presence &&
+                                                $presence->present
                                                     ? 'checked'
                                                     : ''
                                             }}
@@ -170,7 +170,7 @@
                                         class="text-center text-muted py-4"
                                     >
 
-                                        Nenhum participante encontrado.
+                                        Nenhum participante encontrado para este projeto.
 
                                     </td>
 

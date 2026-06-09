@@ -5,13 +5,25 @@
     <div class="container">
 
         <div class="header">
+
             <h3>Voluntário</h3>
 
-            @if(auth()->user()->isAdmin())
-                <a href="{{ route('volunteers.create') }}" class="btn-primary">
-                    + Novo Voluntário
-                </a>
+            @if(auth()->user()?->isAdmin())
+
+                <div class="header-actions">
+
+                    <a href="{{ route('volunteers.create') }}" class="btn-primary">
+                        + Novo Voluntário
+                    </a>
+
+                    <a href="{{ route('pending-volunteers.index') }}" class="btn-primary">
+                        Possíveis Voluntários
+                    </a>
+
+                </div>
+
             @endif
+
         </div>
 
         <form method="GET" action="{{ route('volunteers') }}" class="mb-3">
@@ -26,7 +38,6 @@
             </div>
 
         </form>
-
 
         {{-- TABELA --}}
         <div class="card shadow-sm">
@@ -53,18 +64,28 @@
                         @forelse($volunteers as $p)
 
                             <tr>
-                                <td>{{ $p->user->name }}</td>
-                                <td>{{ $p->project->name }}</td>
-                                <td>{{ optional($p->user->birthday)->format('d/m/Y') }}</td>
-                                <td>{{ $p->user->age ?? '-' }}</td>
-                                <td>{{ $p->user->phone }}</td>
-                                <td>{{ $p->user->email }}</td>
+
+                                <td>{{ $p->user?->name ?? '-' }}</td>
+
+                                <td>{{ $p->project?->name ?? '-' }}</td>
+
+                                <td>
+                                    {{ optional($p->user?->birthday)->format('d/m/Y') ?? '-' }}
+                                </td>
+
+                                <td>{{ $p->user?->age ?? '-' }}</td>
+
+                                <td>{{ $p->user?->phone ?? '-' }}</td>
+
+                                <td>{{ $p->user?->email ?? '-' }}</td>
 
                                 <td>
                                     @if($p->status === 'approved')
                                         <span class="status approved">✔</span>
+
                                     @elseif($p->status === 'pending')
                                         <span class="status pending">⏳</span>
+
                                     @else
                                         <span class="status rejected">✖</span>
                                     @endif
@@ -72,19 +93,28 @@
 
                                 <td>
                                     <div class="actions">
+
                                         <a href="{{ route('volunteers.edit', $p->id) }}" class="btn btn-primary">
-                                            <i class="fa-solid fa-pen"></i>
+                                            <i class="fa-solid fa-pen"></i>Editar
                                         </a>
 
                                         <form action="{{ route('volunteers.destroy', $p->id) }}" method="POST">
+
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger">
+
+                                            <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Deseja excluir este voluntário?')">
+
                                                 <i class="fa-solid fa-trash"></i>
+
                                             </button>
+
                                         </form>
+
                                     </div>
                                 </td>
+
                             </tr>
 
                         @empty
@@ -106,12 +136,17 @@
 
         {{-- FOOTER --}}
         <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
-            <span>Mostrando {{ $volunteers->count() }} volunteeres</span>
+
+            <span>
+                Mostrando {{ $volunteers->count() }} voluntários
+            </span>
 
             <div>
                 {{ $volunteers->links() }}
             </div>
+
         </div>
+
     </div>
 
 @endsection
